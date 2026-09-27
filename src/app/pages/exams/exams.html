@@ -1,0 +1,119 @@
+<header class="head">
+  <h1>Exams</h1>
+  <div class="buttons">
+    <button mat-stroked-button (click)="importPaper()"><mat-icon>upload_file</mat-icon> Import paper results</button>
+    <a mat-flat-button routerLink="/exams/new"><mat-icon>add</mat-icon> New exam</a>
+  </div>
+</header>
+
+<mat-tab-group mat-stretch-tabs="false" animationDuration="0">
+  <!-- Exams -->
+  <mat-tab label="Exams">
+    <div class="filters">
+      <button class="filter" [class.on]="!categoryFilter()" (click)="categoryFilter.set('')">All</button>
+      @for (c of state.sortedCategories(); track c.id) {
+        <button class="filter" [class.on]="categoryFilter() === c.id" [style.--cat]="c.color | themed" (click)="categoryFilter.set(c.id)">
+          <mat-icon>{{ c.icon }}</mat-icon> {{ c.name }}
+        </button>
+      }
+    </div>
+
+    <div class="grid">
+      @for (exam of exams(); track exam.id) {
+        @let cat = state.categoryById().get(exam.categoryId);
+        @let bestPct = best(exam);
+        <mat-card appearance="outlined" class="exam" [style.--cat]="cat?.color | themed">
+          <div class="top">
+            <span class="badge"><mat-icon>{{ cat?.icon ?? 'quiz' }}</mat-icon></span>
+            <div class="title">
+              <h2>{{ exam.title }}</h2>
+              <span class="meta">{{ cat?.name }} · {{ subjectName(exam) }}</span>
+            </div>
+            <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Exam options"><mat-icon>more_vert</mat-icon></button>
+            <mat-menu #menu="matMenu">
+              <a mat-menu-item [routerLink]="['/exams', exam.id, 'edit']"><mat-icon>edit</mat-icon> Edit</a>
+              <button mat-menu-item (click)="remove(exam)"><mat-icon>delete</mat-icon> Delete</button>
+            </mat-menu>
+          </div>
+
+          <div class="facts">
+            <span><mat-icon inline>help</mat-icon> {{ exam.questionIds.length }} questions</span>
+            <span><mat-icon inline>star</mat-icon> {{ totalPoints(exam) }} pts</span>
+            <span><mat-icon inline>timer</mat-icon> {{ exam.durationMin ? exam.durationMin + ' min' : 'No time limit' }}</span>
+          </div>
+
+          <div class="bottom">
+            @if (bestPct !== null) {
+              <span class="best" matTooltip="Best score"><mat-icon inline>workspace_premium</mat-icon> {{ bestPct }}%</span>
+              <span class="takers">
+                @for (m of takers(exam); track m.email) {
+                  <app-avatar [name]="m.name" [seed]="m.email" [size]="24" />
+                }
+              </span>
+            } @else {
+              <span class="never">Not taken yet</span>
+            }
+            <span class="spacer"></span>
+            <a mat-flat-button [routerLink]="['/exams', exam.id, 'take']" [disabled]="!exam.questionIds.length">
+              <mat-icon>play_arrow</mat-icon> Start
+            </a>
+          </div>
+        </mat-card>
+      } @empty {
+        <div class="empty">
+          <mat-icon>quiz</mat-icon>
+          <p>No exams yet.</p>
+          <a mat-flat-button routerLink="/exams/new">Create your first exam</a>
+        </div>
+      }
+    </div>
+  </mat-tab>
+
+  <!-- To grade -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <span [matBadge]="state.pendingAttempts().length || null" matBadgeOverlap="false" matBadgeColor="warn">To grade</span>
+    </ng-template>
+    <div class="list">
+      @for (a of state.pendingAttempts(); track a.id) {
+        <a class="row" [routerLink]="['/attempts', a.id]">
+          <app-avatar [name]="state.memberFor(a.takenBy).name" [seed]="a.takenBy" [size]="36" />
+          <div class="body">
+            <b>{{ examTitle(a) }}</b>
+            <small>{{ state.memberFor(a.takenBy).name }} · {{ a.submittedAt | date: 'EEE d MMM, HH:mm' }}</small>
+          </div>
+          <span class="pending">{{ toGrade(a) }} to mark</span>
+          <mat-icon>chevron_right</mat-icon>
+        </a>
+      } @empty {
+        <p class="none"><mat-icon inline>check_circle</mat-icon> Nothing to grade. All caught up!</p>
+      }
+    </div>
+  </mat-tab>
+
+  <!-- History -->
+  <mat-tab label="History">
+    <div class="list">
+      @for (a of state.sortedAttempts(); track a.id) {
+        @let pct = percent(a);
+        <a class="row" [routerLink]="['/attempts', a.id]">
+          <app-avatar [name]="state.memberFor(a.takenBy).name" [seed]="a.takenBy" [size]="36" />
+          <div class="body">
+            <b>{{ examTitle(a) }}</b>
+            <small>
+              {{ state.memberFor(a.takenBy).name }} · {{ a.submittedAt | date: 'EEE d MMM, HH:mm' }}
+              @if (a.source === 'manual') { · <mat-icon inline>description</mat-icon> paper }
+            </small>
+          </div>
+          @if (a.gradingStatus === 'pending') {
+            <span class="pending">needs marking</span>
+          }
+          <span class="score" [class.good]="pct >= 75" [class.ok]="pct >= 50 && pct < 75" [class.low]="pct < 50">{{ pct }}%</span>
+          <mat-icon>chevron_right</mat-icon>
+        </a>
+      } @empty {
+        <p class="none">No results yet.</p>
+      }
+    </div>
+  </mat-tab>
+</mat-tab-group>

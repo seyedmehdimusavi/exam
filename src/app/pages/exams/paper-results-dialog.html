@@ -1,0 +1,58 @@
+<h2 mat-dialog-title>Import paper exam results</h2>
+<mat-dialog-content>
+  <ol class="steps">
+    <li>
+      <span>Choose the exam that was done on paper</span>
+      <mat-form-field appearance="outline" class="exam-select" subscriptSizing="dynamic">
+        <mat-label>Exam</mat-label>
+        <mat-select [value]="examId()" (valueChange)="selectExam($event)">
+          @for (e of state.sortedExams(); track e.id) {
+            <mat-option [value]="e.id">{{ e.title }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </li>
+    <li [class.off]="!exam()">
+      <span>Download its results sheet and fill in the scores</span>
+      <button mat-stroked-button [disabled]="!exam()" (click)="template()"><mat-icon>download</mat-icon> Download sheet</button>
+    </li>
+    <li [class.off]="!exam()">
+      <span>Upload the filled sheet</span>
+      <input #file type="file" accept=".xlsx,.xls" hidden (change)="onPick(file)" />
+      <button mat-stroked-button [disabled]="!exam() || busy()" (click)="file.click()"><mat-icon>upload_file</mat-icon> Choose file</button>
+    </li>
+  </ol>
+
+  @if (busy()) {
+    <mat-spinner diameter="36" class="center" />
+  }
+  @if (error(); as e) {
+    <p class="error" role="alert"><mat-icon inline>error</mat-icon> {{ e }}</p>
+  }
+
+  @if (rows().length) {
+    <table class="preview">
+      <thead>
+        <tr><th>Row</th><th></th><th>Member</th><th>Date</th><th>Score</th><th>Problems</th></tr>
+      </thead>
+      <tbody>
+        @for (r of rows(); track r.rowNumber) {
+          <tr [class.bad]="r.errors.length">
+            <td>{{ r.rowNumber }}</td>
+            <td><mat-icon [class]="r.errors.length ? 'bad' : 'ok'">{{ r.errors.length ? 'error' : 'check_circle' }}</mat-icon></td>
+            <td>{{ r.member ? r.member.name : r.memberText }}</td>
+            <td>{{ r.date ? (r.date | date: 'd MMM y') : '—' }}</td>
+            <td>{{ r.total }} / {{ r.maxScore }}</td>
+            <td class="msg">{{ r.errors.join(' ') }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+  <button mat-flat-button [disabled]="!ready().length || busy()" (click)="importReady()">
+    Import {{ ready().length }} results
+  </button>
+</mat-dialog-actions>

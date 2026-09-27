@@ -1,0 +1,165 @@
+<div class="form">
+  <!-- 1. Category -->
+  <section>
+    <h3><span class="step">1</span> Category</h3>
+    <div class="categories">
+      @for (c of state.sortedCategories(); track c.id) {
+        <button
+          type="button"
+          class="category"
+          [class.on]="draft.categoryId === c.id"
+          [style.--cat]="c.color | themed"
+          (click)="setCategory(c.id)"
+        >
+          <mat-icon>{{ c.icon }}</mat-icon> {{ c.name }}
+        </button>
+      }
+    </div>
+  </section>
+
+  <!-- 2. Subject -->
+  <section>
+    <h3><span class="step">2</span> Subject</h3>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>{{ draft.categoryId ? 'Pick or type a subject' : 'Choose a category first' }}</mat-label>
+      <input
+        matInput
+        [disabled]="!draft.categoryId"
+        [ngModel]="draft.subjectName"
+        (ngModelChange)="setSubject($event)"
+        [matAutocomplete]="auto"
+      />
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="setSubject($event.option.value)">
+        @for (s of filteredSubjects(); track s.id) {
+          <mat-option [value]="s.name">{{ s.name }}</mat-option>
+        }
+      </mat-autocomplete>
+      @if (isNewSubject()) {
+        <mat-hint><mat-icon inline>add_circle</mat-icon> New subject. It will be created when you save.</mat-hint>
+      }
+    </mat-form-field>
+  </section>
+
+  <!-- 3. Type -->
+  <section>
+    <h3><span class="step">3</span> Question type</h3>
+    <mat-button-toggle-group class="types" [value]="draft.type" (change)="setType($event.value)" hideSingleSelectionIndicator>
+      @for (t of types; track t.value) {
+        <mat-button-toggle [value]="t.value"><mat-icon>{{ t.icon }}</mat-icon> {{ t.label }}</mat-button-toggle>
+      }
+    </mat-button-toggle-group>
+  </section>
+
+  <!-- 4. Question + answer -->
+  <section>
+    <h3><span class="step">4</span> Question</h3>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Write your question</mat-label>
+      <textarea matInput cdkTextareaAutosize rows="3" [(ngModel)]="draft.text"></textarea>
+    </mat-form-field>
+
+    @switch (draft.type) {
+      @case ('multiple-choice') {
+        <p class="help">Type the choices and tap the circle next to the right answer(s).</p>
+        @for (option of draft.options; track $index; let i = $index) {
+          <div class="option" [class.correct]="isCorrect(option)">
+            <button
+              type="button"
+              mat-icon-button
+              class="mark"
+              [attr.aria-label]="'Mark option ' + letters[i] + ' correct'"
+              (click)="toggleCorrect(i)"
+            >
+              <mat-icon>{{ isCorrect(option) ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+            </button>
+            <span class="letter">{{ letters[i] }}</span>
+            <input class="option-input" [placeholder]="'Option ' + letters[i]" [ngModel]="option" (ngModelChange)="editOption(i, $event)" />
+            @if (draft.options.length > 2) {
+              <button type="button" mat-icon-button aria-label="Remove option" (click)="removeOption(i)"><mat-icon>close</mat-icon></button>
+            }
+          </div>
+        }
+        @if (draft.options.length < maxOptions) {
+          <button type="button" mat-button (click)="addOption()"><mat-icon>add</mat-icon> Add option</button>
+        }
+      }
+      @case ('true-false') {
+        <p class="help">Which one is correct?</p>
+        <div class="tf">
+          @for (v of trueFalse; track v) {
+            <button
+              type="button"
+              class="tf-btn"
+              [class.on]="draft.correctAnswers[0] === v"
+              [class.true]="v === 'True'"
+              (click)="draft.correctAnswers = [v]"
+            >
+              <mat-icon>{{ v === 'True' ? 'thumb_up' : 'thumb_down' }}</mat-icon> {{ v }}
+            </button>
+          }
+        </div>
+      }
+      @case ('short-answer') {
+        <p class="help">Write the right answer. Add more if different spellings are also OK.</p>
+        @for (answer of draft.correctAnswers; track $index; let i = $index) {
+          <div class="option correct">
+            <mat-icon class="mark-static">check_circle</mat-icon>
+            <input class="option-input" placeholder="Accepted answer" [ngModel]="answer" (ngModelChange)="editAnswer(i, $event)" />
+            @if (draft.correctAnswers.length > 1) {
+              <button type="button" mat-icon-button aria-label="Remove answer" (click)="removeAnswer(i)"><mat-icon>close</mat-icon></button>
+            }
+          </div>
+        }
+        <button type="button" mat-button (click)="addAnswer()"><mat-icon>add</mat-icon> Add another accepted answer</button>
+      }
+      @case ('essay') {
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Model answer (optional, helps when marking)</mat-label>
+          <textarea matInput rows="3" [(ngModel)]="modelAnswer"></textarea>
+        </mat-form-field>
+      }
+    }
+  </section>
+
+  <!-- 5. Extras -->
+  <section class="extras">
+    <div>
+      <h3>Difficulty</h3>
+      <mat-button-toggle-group [(ngModel)]="draft.difficulty" hideSingleSelectionIndicator>
+        @for (d of difficulties; track d.value) {
+          <mat-button-toggle [value]="d.value">{{ d.label }}</mat-button-toggle>
+        }
+      </mat-button-toggle-group>
+    </div>
+    <mat-form-field appearance="outline" class="score">
+      <mat-label>Points</mat-label>
+      <input matInput type="number" min="1" [(ngModel)]="draft.score" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="tags">
+      <mat-label>Tags (optional, comma separated)</mat-label>
+      <input matInput [(ngModel)]="tagsText" placeholder="e.g. revision, chapter 2" />
+    </mat-form-field>
+  </section>
+
+  @if (submitted() && errors().length) {
+    <ul class="errors" role="alert">
+      @for (e of errors(); track e) {
+        <li><mat-icon inline>error</mat-icon> {{ e }}</li>
+      }
+    </ul>
+  }
+
+  <div class="actions">
+    @if (showCancel()) {
+      <button type="button" mat-button (click)="cancelled.emit()">Cancel</button>
+    }
+    <button type="button" mat-flat-button class="save" [disabled]="busy()" (click)="submit()">
+      @if (busy()) {
+        <mat-spinner diameter="20" />
+      } @else {
+        <mat-icon>save</mat-icon>
+      }
+      {{ submitLabel() }}
+    </button>
+  </div>
+</div>

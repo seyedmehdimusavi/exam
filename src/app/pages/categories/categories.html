@@ -1,0 +1,99 @@
+<header class="head">
+  <h1>Categories</h1>
+  <button mat-flat-button (click)="startAdd()"><mat-icon>add</mat-icon> New category</button>
+</header>
+
+<ng-template #editor>
+  <mat-card class="editor" appearance="outlined">
+    <mat-card-content>
+      <mat-form-field appearance="outline" class="name">
+        <mat-label>Category name</mat-label>
+        <input matInput [(ngModel)]="draft.name" (keydown.enter)="save()" autofocus />
+      </mat-form-field>
+      <div class="pick">
+        <span class="label">Icon</span>
+        @for (icon of icons; track icon) {
+          <button class="swatch" [class.on]="draft.icon === icon" (click)="draft.icon = icon" [attr.aria-label]="icon">
+            <mat-icon>{{ icon }}</mat-icon>
+          </button>
+        }
+      </div>
+      <div class="pick">
+        <span class="label">Color</span>
+        @for (color of colors; track color) {
+          <button
+            class="swatch color"
+            [class.on]="draft.color === color"
+            [style.background]="color"
+            (click)="draft.color = color"
+            [attr.aria-label]="color"
+          ></button>
+        }
+      </div>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-button (click)="cancel()">Cancel</button>
+      <button mat-flat-button [disabled]="!draft.name.trim()" (click)="save()">Save</button>
+    </mat-card-actions>
+  </mat-card>
+</ng-template>
+
+@if (adding()) {
+  <ng-container [ngTemplateOutlet]="editor" />
+}
+
+@if (!state.loaded()) {
+  <mat-spinner class="loading" diameter="48" />
+} @else {
+  <div class="grid">
+    @for (c of state.sortedCategories(); track c.id) {
+      @if (editingId() === c.id) {
+        <ng-container [ngTemplateOutlet]="editor" />
+      } @else {
+        <mat-card class="category" appearance="outlined" [style.--cat]="c.color | themed">
+          <div class="title">
+            <span class="badge"><mat-icon>{{ c.icon }}</mat-icon></span>
+            <div>
+              <h2>{{ c.name }}</h2>
+              <span class="meta">
+                {{ state.questionCountByCategory().get(c.id) ?? 0 }} questions ·
+                {{ state.examCountByCategory().get(c.id) ?? 0 }} exams
+              </span>
+            </div>
+            <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Category options">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item (click)="startEdit(c)"><mat-icon>edit</mat-icon> Edit</button>
+              <button mat-menu-item (click)="remove(c)"><mat-icon>delete</mat-icon> Delete</button>
+            </mat-menu>
+          </div>
+
+          <h3>Subjects</h3>
+          <mat-chip-set>
+            @for (s of c.subjects; track s.id) {
+              <mat-chip (click)="renameSubject(c, s)" title="Click to rename">
+                {{ s.name }}
+                <span class="count">{{ state.questionCountBySubject().get(s.id) ?? 0 }}</span>
+                <button matChipRemove (click)="$event.stopPropagation(); removeSubject(c, s)" [attr.aria-label]="'Delete ' + s.name">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </mat-chip>
+            } @empty {
+              <span class="empty">No subjects yet</span>
+            }
+          </mat-chip-set>
+
+          <div class="add-subject">
+            <input
+              placeholder="Add a subject, e.g. Fractions"
+              [(ngModel)]="newSubject[c.id]"
+              (keydown.enter)="addSubject(c)"
+            />
+            <button mat-icon-button (click)="addSubject(c)" aria-label="Add subject"><mat-icon>add_circle</mat-icon></button>
+          </div>
+        </mat-card>
+      }
+    }
+  </div>
+}

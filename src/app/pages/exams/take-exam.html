@@ -1,0 +1,119 @@
+@if (!state.loaded()) {
+  <mat-spinner class="center" diameter="48" />
+} @else if (!exam()) {
+  <div class="intro">
+    <p>This exam doesn't exist anymore.</p>
+    <a mat-flat-button routerLink="/exams">Back to exams</a>
+  </div>
+} @else if (phase() === 'intro') {
+  <mat-card appearance="outlined" class="intro" [style.--cat]="category()?.color | themed">
+    <span class="badge"><mat-icon>{{ category()?.icon ?? 'quiz' }}</mat-icon></span>
+    <h1>{{ exam()!.title }}</h1>
+    <p class="meta">{{ category()?.name }}</p>
+    <div class="facts">
+      <div><b>{{ questions().length }}</b><span>questions</span></div>
+      <div><b>{{ totalPoints() }}</b><span>points</span></div>
+      <div><b>{{ exam()!.durationMin ?? '∞' }}</b><span>{{ exam()!.durationMin ? 'minutes' : 'no time limit' }}</span></div>
+    </div>
+    @if (saved(); as s) {
+      <p class="resume">You already started this exam. Continue where you left off?</p>
+      <div class="buttons">
+        <button mat-stroked-button (click)="start(false)">Start over</button>
+        <button mat-flat-button (click)="start(true)"><mat-icon>play_arrow</mat-icon> Continue</button>
+      </div>
+    } @else {
+      <div class="buttons">
+        <a mat-button routerLink="/exams">Back</a>
+        <button mat-flat-button class="go" [disabled]="!questions().length" (click)="start(false)">
+          <mat-icon>rocket_launch</mat-icon> Start exam
+        </button>
+      </div>
+    }
+  </mat-card>
+} @else {
+  @let q = current();
+  <div class="bar">
+    <span class="title">{{ exam()!.title }}</span>
+    <span class="count">{{ index() + 1 }} / {{ questions().length }}</span>
+    @if (clock()) {
+      <span class="clock" [class.hurry]="remainingMs()! < 60000"><mat-icon inline>timer</mat-icon> {{ clock() }}</span>
+    }
+  </div>
+  <mat-progress-bar mode="determinate" [value]="(answeredCount() / questions().length) * 100" />
+
+  <nav class="dots" aria-label="Questions">
+    @for (item of questions(); track item.id; let i = $index) {
+      <button
+        class="dot"
+        [class.done]="isAnswered(item)"
+        [class.here]="i === index()"
+        [attr.aria-label]="'Question ' + (i + 1)"
+        (click)="go(i)"
+      >{{ i + 1 }}</button>
+    }
+  </nav>
+
+  @if (q) {
+    <mat-card appearance="outlined" class="question">
+      <div class="q-head">
+        <span class="q-num">Question {{ index() + 1 }}</span>
+        <span class="q-pts">{{ q.score }} {{ q.score === 1 ? 'point' : 'points' }}</span>
+      </div>
+      <p class="q-text">{{ q.text }}</p>
+
+      @switch (q.type) {
+        @case ('multiple-choice') {
+          @if (isMulti(q)) {
+            <p class="hint">Choose all correct answers.</p>
+          }
+          <div class="choices">
+            @for (option of q.options; track option; let i = $index) {
+              <button class="choice" [class.on]="chosen(q, option)" (click)="choose(q, option)">
+                <span class="letter">{{ letters[i] }}</span>
+                <span>{{ option }}</span>
+              </button>
+            }
+          </div>
+        }
+        @case ('true-false') {
+          <div class="tf">
+            @for (option of q.options; track option) {
+              <button class="choice big" [class.on]="chosen(q, option)" (click)="choose(q, option)">
+                <mat-icon>{{ option === 'True' ? 'thumb_up' : 'thumb_down' }}</mat-icon> {{ option }}
+              </button>
+            }
+          </div>
+        }
+        @case ('short-answer') {
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Your answer</mat-label>
+            <input matInput [ngModel]="text(q)" (ngModelChange)="setText(q, $event)" autocomplete="off" />
+          </mat-form-field>
+        }
+        @case ('essay') {
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Your answer</mat-label>
+            <textarea matInput rows="8" [ngModel]="text(q)" (ngModelChange)="setText(q, $event)"></textarea>
+          </mat-form-field>
+        }
+      }
+    </mat-card>
+  }
+
+  <div class="nav">
+    <button mat-stroked-button [disabled]="index() === 0" (click)="go(index() - 1)"><mat-icon>arrow_back</mat-icon> Previous</button>
+    <span class="spacer"></span>
+    @if (index() < questions().length - 1) {
+      <button mat-flat-button (click)="go(index() + 1)">Next <mat-icon iconPositionEnd>arrow_forward</mat-icon></button>
+    } @else {
+      <button mat-flat-button class="finish" [disabled]="phase() === 'submitting'" (click)="finish()">
+        @if (phase() === 'submitting') {
+          <mat-spinner diameter="20" />
+        } @else {
+          <mat-icon>flag</mat-icon>
+        }
+        Finish
+      </button>
+    }
+  </div>
+}

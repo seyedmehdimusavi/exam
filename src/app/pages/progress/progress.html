@@ -1,0 +1,87 @@
+<header class="head">
+  <h1>Progress</h1>
+</header>
+
+<div class="filters">
+  <app-member-picker [(email)]="email" />
+  <span class="spacer"></span>
+  <mat-button-toggle-group [value]="days()" (change)="days.set($event.value)" hideSingleSelectionIndicator aria-label="Time range">
+    <mat-button-toggle [value]="7">7 days</mat-button-toggle>
+    <mat-button-toggle [value]="30">30 days</mat-button-toggle>
+    <mat-button-toggle [value]="90">90 days</mat-button-toggle>
+    <mat-button-toggle [value]="null">All time</mat-button-toggle>
+  </mat-button-toggle-group>
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="category">
+    <mat-select [value]="categoryId()" (valueChange)="categoryId.set($event)" aria-label="Category">
+      <mat-option value="">All categories</mat-option>
+      @for (c of state.sortedCategories(); track c.id) {
+        <mat-option [value]="c.id">{{ c.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>
+
+<div class="tiles">
+  <app-stat-tile label="Exams taken" icon="quiz" [value]="tiles().exams" [note]="waiting() ? waiting() + ' waiting for marks' : ''" />
+  <app-stat-tile label="Average score" icon="percent" [value]="tiles().average" />
+  <app-stat-tile label="Best score" icon="emoji_events" [value]="tiles().best" />
+  <app-stat-tile label="Trend" icon="trending_up" [value]="tiles().trend" [note]="tiles().trendNote" [trend]="tiles().trendDir" />
+  <app-stat-tile label="Questions created" icon="edit_note" [value]="tiles().created" />
+</div>
+
+<div class="cards">
+  <section class="card wide">
+    <h2>Score over time</h2>
+    @if (line().length) {
+      <app-line-chart [points]="line()" caption="Exam scores over time" />
+    } @else {
+      <p class="none">No marked exams in this period yet.</p>
+    }
+  </section>
+
+  <section class="card">
+    <h2>Score by category</h2>
+    <app-bar-list [items]="byCategory()" [max]="100" emptyText="No marked answers yet." />
+  </section>
+
+  <section class="card">
+    <h2>Strongest subjects</h2>
+    <app-bar-list [items]="strongest()" [max]="100" [emptyText]="'Subjects appear after ' + minAnswers + ' marked answers.'" />
+  </section>
+
+  <section class="card wide practise">
+    <h2><mat-icon>fitness_center</mat-icon> Practise next</h2>
+    @if (practise().length) {
+      <app-bar-list [items]="practise()" [max]="100" />
+      <p class="hint">Subjects under 80%, weakest first. Build an exam with these on the <a routerLink="/exams/new">Exams page</a>.</p>
+    } @else {
+      <p class="none">Nothing below 80% yet. Well done!</p>
+    }
+  </section>
+
+  <section class="card wide">
+    <h2>Recent results</h2>
+    <table class="history">
+      <thead>
+        <tr><th>Date</th><th>Exam</th><th>Category</th>@if (!email()) { <th>Who</th> }<th class="num">Score</th></tr>
+      </thead>
+      <tbody>
+        @for (a of history(); track a.id) {
+          @let exam = state.examById().get(a.examId);
+          @let cat = state.categoryById().get(exam?.categoryId ?? '');
+          <tr [routerLink]="['/attempts', a.id]" tabindex="0">
+            <td>{{ a.submittedAt | date: 'd MMM' }}</td>
+            <td>{{ examTitle(a) }}</td>
+            <td><i class="swatch" [style.background]="cat?.color | themed"></i>{{ cat?.name }}</td>
+            @if (!email()) { <td><app-avatar [name]="state.memberFor(a.takenBy).name" [seed]="a.takenBy" [size]="24" /></td> }
+            <td class="num">
+              @if (a.gradingStatus === 'pending') { <small>marking…</small> } @else { {{ percent(a) }}% }
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5" class="none">No results in this period.</td></tr>
+        }
+      </tbody>
+    </table>
+  </section>
+</div>

@@ -1,0 +1,139 @@
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+
+  h1 {
+    margin: 0;
+    font: 700 28px/1.2 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+.loading {
+  margin: 64px auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.category {
+  border-top: 4px solid var(--cat);
+  padding: 16px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  > div {
+    flex: 1;
+  }
+
+  h2 {
+    margin: 0;
+    font: var(--mat-sys-title-large);
+  }
+}
+
+.badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--cat);
+}
+
+.meta {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+h3 {
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+  margin: 16px 0 8px;
+}
+
+.count {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  background: var(--mat-sys-surface-container-highest);
+}
+
+.empty {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.add-subject {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 24px;
+  padding-left: 16px;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font: var(--mat-sys-body-medium);
+    color: var(--mat-sys-on-surface);
+  }
+}
+
+.editor {
+  margin-bottom: 16px;
+
+  .name {
+    width: 100%;
+  }
+}
+
+.pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+
+  .label {
+    width: 48px;
+    font: var(--mat-sys-label-large);
+  }
+}
+
+.swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+
+  &.on {
+    border-color: var(--mat-sys-primary);
+  }
+
+  &.color.on {
+    outline: 2px solid var(--mat-sys-on-surface);
+    outline-offset: 2px;
+  }
+}

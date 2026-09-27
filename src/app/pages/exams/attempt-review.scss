@@ -1,0 +1,268 @@
+:host {
+  display: block;
+  max-width: 820px;
+  margin: 0 auto;
+  padding-bottom: 72px;
+}
+
+.center {
+  margin: 64px auto;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+
+  h1 {
+    margin: 0;
+    font: var(--mat-sys-headline-small);
+  }
+}
+
+.meta {
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.score-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  margin-bottom: 16px;
+
+  &.celebrate {
+    background: linear-gradient(135deg, var(--mat-sys-primary-container), var(--mat-sys-surface) 70%);
+    animation: pop 0.5s ease-out;
+  }
+}
+
+.ring {
+  --pct: 0;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(var(--mat-sys-primary) calc(var(--pct) * 1%), var(--mat-sys-surface-container-highest) 0);
+
+  span {
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font: 700 28px/1.2 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.02em;
+    background: var(--mat-sys-surface);
+  }
+}
+
+.summary {
+  flex: 1;
+  min-width: 200px;
+
+  h2 {
+    margin: 0;
+    font: var(--mat-sys-headline-small);
+  }
+
+  .points {
+    margin: 4px 0 8px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.tally {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font: var(--mat-sys-label-large);
+}
+
+.ok {
+  color: var(--ok-fg);
+}
+
+.bad {
+  color: var(--mat-sys-error);
+}
+
+.wait {
+  color: var(--warn-fg);
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+}
+
+.item {
+  padding: 16px;
+  margin-bottom: 12px;
+  border-left: 5px solid var(--mat-sys-outline-variant);
+
+  &.right {
+    border-left-color: var(--ok-fg);
+    .state { color: var(--ok-fg); }
+  }
+
+  &.wrong {
+    border-left-color: var(--mat-sys-error);
+    .state { color: var(--mat-sys-error); }
+  }
+
+  &.pending {
+    border-left-color: var(--warn-fg);
+    .state { color: var(--warn-fg); }
+  }
+}
+
+.item-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .n {
+    font: var(--mat-sys-title-small);
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .spacer {
+    flex: 1;
+  }
+
+  .pts {
+    font: var(--mat-sys-title-small);
+  }
+}
+
+.q-text {
+  margin: 8px 0 12px;
+  font: var(--mat-sys-title-medium);
+  white-space: pre-wrap;
+}
+
+.opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--app-border);
+
+  .grow {
+    flex: 1;
+  }
+
+  &.chosen {
+    border-color: var(--mat-sys-error);
+    background: color-mix(in srgb, var(--mat-sys-error) 8%, transparent);
+    color: var(--mat-sys-error);
+  }
+
+  &.correct {
+    border-color: var(--ok-fg);
+    background: color-mix(in srgb, var(--ok-fg) 10%, transparent);
+    color: var(--ok-fg);
+  }
+}
+
+.letter {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: var(--mat-sys-label-medium);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+}
+
+.correct-line {
+  color: var(--ok-fg);
+}
+
+.essay {
+  padding: 12px;
+  border-radius: 10px;
+  white-space: pre-wrap;
+  background: var(--mat-sys-surface-container);
+}
+
+.model {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.grade {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+
+  .points-field {
+    width: 140px;
+  }
+
+  .feedback-field {
+    flex: 1;
+    min-width: 200px;
+  }
+}
+
+.feedback {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.save-bar {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 20px;
+  border-radius: 28px;
+  background: var(--mat-sys-inverse-surface);
+  color: var(--mat-sys-inverse-on-surface);
+  box-shadow: var(--mat-sys-level3);
+  z-index: 5;
+
+  button[mat-button] {
+    color: var(--mat-sys-inverse-primary);
+  }
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+
+.summary h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mood {
+  color: var(--mat-sys-primary);
+}

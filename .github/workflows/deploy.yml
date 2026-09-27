@@ -1,0 +1,60 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # The Firebase config and family list live in a repository secret, never in git.
+      - name: Write private settings
+        env:
+          FIREBASE_ENVIRONMENT: ${{ secrets.FIREBASE_ENVIRONMENT }}
+        run: |
+          if [ -z "$FIREBASE_ENVIRONMENT" ]; then
+            echo "::error::Add the FIREBASE_ENVIRONMENT repository secret (the contents of src/environments/environment.local.ts)."
+            exit 1
+          fi
+          printf '%s\n' "$FIREBASE_ENVIRONMENT" > src/environments/environment.local.ts
+
+      - name: Build
+        run: npx ng build --base-href "/${{ github.event.repository.name }}/"
+
+      # GitHub Pages serves 404.html for unknown paths, which lets deep links load the app.
+      - run: cp dist/exam-app/browser/index.html dist/exam-app/browser/404.html
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/exam-app/browser
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,50 @@
+<header class="head">
+  <h1>{{ editing() ? 'Edit question' : 'Create a question' }}</h1>
+  @if (madeToday() > 0) {
+    <span class="today"><mat-icon>bolt</mat-icon> {{ madeToday() }} made today</span>
+  }
+</header>
+
+<mat-card appearance="outlined" class="card">
+  <mat-card-content>
+    @if (editing()) {
+      <app-question-form
+        [initial]="editingDraft()"
+        submitLabel="Update question"
+        [showCancel]="true"
+        [save]="save"
+        (cancelled)="editing.set(null)"
+      />
+    } @else {
+      <app-question-form submitLabel="Save & add another" [resetOnSave]="true" [save]="save" />
+    }
+  </mat-card-content>
+</mat-card>
+
+<section class="recent">
+  <div class="recent-head">
+    <h2>Recent questions</h2>
+    <mat-button-toggle-group [value]="onlyMine()" (change)="onlyMine.set($event.value)" hideSingleSelectionIndicator>
+      <mat-button-toggle [value]="true">Mine</mat-button-toggle>
+      <mat-button-toggle [value]="false">Everyone</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+  @for (q of recent(); track q.id) {
+    @let cat = state.categoryById().get(q.categoryId);
+    <div class="row" [class.active]="editing()?.id === q.id" [style.--cat]="cat?.color | themed">
+      <mat-icon class="type" [matTooltip]="typeInfo(q.type).label">{{ typeInfo(q.type).icon }}</mat-icon>
+      <div class="body">
+        <div class="text">{{ q.text }}</div>
+        <div class="meta">
+          <span class="dot"></span>{{ cat?.name }} · {{ subjectName(q) }} · {{ q.difficulty }} · {{ q.score }} pt
+        </div>
+      </div>
+      <app-avatar [name]="state.memberFor(q.createdBy).name" [seed]="q.createdBy" [size]="26" />
+      <button mat-icon-button aria-label="Edit" (click)="edit(q)"><mat-icon>edit</mat-icon></button>
+      <button mat-icon-button aria-label="Delete" (click)="remove(q)"><mat-icon>delete</mat-icon></button>
+    </div>
+  } @empty {
+    <p class="empty">No questions yet. Your first one will show up here.</p>
+  }
+</section>

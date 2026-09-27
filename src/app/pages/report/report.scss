@@ -1,0 +1,159 @@
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  h1 {
+    margin: 0;
+    font: 700 28px/1.2 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+.spacer {
+  flex: 1;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 16px;
+
+  .exam-select {
+    width: 260px;
+  }
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.cards {
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--app-border);
+  background: var(--app-panel);
+  min-width: 0;
+  overflow-x: auto;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    font: var(--mat-sys-title-medium);
+  }
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  h2 {
+    margin: 0;
+  }
+
+  .sort {
+    font: var(--mat-sys-label-medium);
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .on {
+    background: var(--mat-sys-secondary-container);
+  }
+}
+
+.sub,
+.none {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    text-align: left;
+    padding: 8px;
+    font: var(--mat-sys-label-large);
+    color: var(--mat-sys-on-surface-variant);
+    border-bottom: 1px solid var(--viz-axis);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 8px;
+    border-bottom: 1px solid var(--viz-grid);
+  }
+
+  tbody tr {
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      background: var(--mat-sys-surface-container);
+      outline: none;
+    }
+  }
+
+  .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 50%;
+}
+
+.pending {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font: var(--mat-sys-label-small);
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+}
+
+.hard h2 mat-icon {
+  color: var(--viz-critical);
+}
+
+.hard-row {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  column-gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--viz-grid);
+
+  b {
+    grid-row: span 2;
+    font: var(--mat-sys-title-large);
+    color: var(--mat-sys-on-surface);
+  }
+
+  small {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.person {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}

@@ -1,0 +1,75 @@
+<header class="head">
+  <h1>{{ isToday() ? 'Today' : (day() | date: 'EEEE') }}</h1>
+  <div class="day-nav">
+    <button mat-icon-button aria-label="Previous day" (click)="shiftDay(-1)"><mat-icon>chevron_left</mat-icon></button>
+    <span>{{ day() | date: 'EEE d MMMM y' }}</span>
+    <button mat-icon-button aria-label="Next day" [disabled]="isToday()" (click)="shiftDay(1)"><mat-icon>chevron_right</mat-icon></button>
+    @if (!isToday()) {
+      <button mat-button (click)="day.set(now())">Today</button>
+    }
+  </div>
+</header>
+
+<div class="filters">
+  <app-member-picker [(email)]="email" />
+</div>
+
+<div class="tiles">
+  <app-stat-tile label="Questions created" icon="edit_note" [value]="tiles().created" />
+  <app-stat-tile label="Exams taken" icon="quiz" [value]="tiles().exams" />
+  <app-stat-tile label="Right answers" icon="check_circle" [value]="tiles().right" [note]="tiles().accuracy" />
+  <app-stat-tile label="Time on exams" icon="timer" [value]="tiles().time" />
+  <app-stat-tile label="Points earned" icon="star" [value]="tiles().points" />
+</div>
+
+@if (isEmpty()) {
+  <div class="empty">
+    <mat-icon class="big">spa</mat-icon>
+    <p>{{ memberName() }} hasn't done anything {{ isToday() ? 'yet today' : 'on this day' }}.</p>
+    @if (isToday()) {
+      <div class="buttons">
+        <a mat-stroked-button routerLink="/create-question"><mat-icon>edit_note</mat-icon> Create a question</a>
+        <a mat-flat-button routerLink="/exams"><mat-icon>quiz</mat-icon> Take an exam</a>
+      </div>
+    }
+  </div>
+}
+
+<div class="cards">
+  <section class="card">
+    <h2>Right and wrong answers by category</h2>
+    <app-bar-list [items]="rightWrongByCategory()" emptyText="No marked answers on this day." />
+  </section>
+
+  <section class="card">
+    <h2>Questions created by category</h2>
+    <app-bar-list [items]="createdByCategory()" emptyText="No questions created on this day." />
+  </section>
+
+  <section class="card wide">
+    <h2>Last 7 days</h2>
+    <app-column-chart [series]="weekSeries" [columns]="week()" caption="Questions created and answered per day, last 7 days" />
+  </section>
+
+  <section class="card wide">
+    <h2>Activity</h2>
+    @for (item of feed(); track item.time + item.text) {
+      @if (item.link) {
+        <a class="feed" [routerLink]="item.link">
+          <span class="time">{{ item.time | date: 'HH:mm' }}</span>
+          <mat-icon>{{ item.icon }}</mat-icon>
+          <span class="body"><b>{{ item.text }}</b><small>{{ item.detail }}</small></span>
+          <mat-icon class="go">chevron_right</mat-icon>
+        </a>
+      } @else {
+        <div class="feed">
+          <span class="time">{{ item.time | date: 'HH:mm' }}</span>
+          <mat-icon>{{ item.icon }}</mat-icon>
+          <span class="body"><b>{{ item.text }}</b><small>{{ item.detail }}</small></span>
+        </div>
+      }
+    } @empty {
+      <p class="none">Nothing to show.</p>
+    }
+  </section>
+</div>

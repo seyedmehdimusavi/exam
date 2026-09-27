@@ -1,0 +1,144 @@
+<header class="head">
+  <a mat-icon-button routerLink="/exams" aria-label="Back to exams"><mat-icon>arrow_back</mat-icon></a>
+  <h1>{{ id() ? 'Edit exam' : 'New exam' }}</h1>
+</header>
+
+<mat-card appearance="outlined" class="settings">
+  <mat-card-content>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Exam title</mat-label>
+      <input matInput [ngModel]="title()" (ngModelChange)="title.set($event)" placeholder="e.g. Fractions quiz 1" />
+    </mat-form-field>
+
+    <p class="label">Category</p>
+    <div class="categories">
+      @for (c of state.sortedCategories(); track c.id) {
+        <button type="button" class="category" [class.on]="categoryId() === c.id" [style.--cat]="c.color | themed" (click)="setCategory(c.id)">
+          <mat-icon>{{ c.icon }}</mat-icon> {{ c.name }}
+        </button>
+      }
+    </div>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Subject</mat-label>
+        <mat-select [value]="subjectId()" (valueChange)="subjectId.set($event)" [disabled]="!category()">
+          <mat-option value="">All subjects</mat-option>
+          @for (s of category()?.subjects ?? []; track s.id) {
+            <mat-option [value]="s.id">{{ s.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <div class="timer">
+        <mat-checkbox [checked]="timed()" (change)="timed.set($event.checked)">Time limit</mat-checkbox>
+        @if (timed()) {
+          <mat-form-field appearance="outline" class="minutes">
+            <mat-label>Minutes</mat-label>
+            <input matInput type="number" min="1" [ngModel]="durationMin()" (ngModelChange)="durationMin.set($event)" />
+          </mat-form-field>
+        }
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+@if (category()) {
+  <div class="columns">
+    <!-- Question pool -->
+    <section class="pool">
+      <h2>Question bank <small>({{ pool().length }})</small></h2>
+
+      <div class="random">
+        <mat-icon>casino</mat-icon>
+        <span>Add</span>
+        <input type="number" min="1" [(ngModel)]="randomCount" aria-label="How many random questions" />
+        <mat-select [(ngModel)]="randomDifficulty" class="diff" aria-label="Difficulty">
+          <mat-option value="">any</mat-option>
+          @for (d of difficulties; track d.value) {
+            <mat-option [value]="d.value">{{ d.label.toLowerCase() }}</mat-option>
+          }
+        </mat-select>
+        <span>random questions</span>
+        <button mat-stroked-button (click)="addRandom()">Add</button>
+      </div>
+
+      <div class="filters">
+        <mat-form-field appearance="outline" class="search" subscriptSizing="dynamic">
+          <mat-icon matPrefix>search</mat-icon>
+          <input matInput placeholder="Search" [ngModel]="search()" (ngModelChange)="search.set($event)" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-select [value]="typeFilter()" (valueChange)="typeFilter.set($event)" placeholder="Any type">
+            <mat-option value="">Any type</mat-option>
+            @for (t of types; track t.value) {
+              <mat-option [value]="t.value">{{ t.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-select [value]="difficultyFilter()" (valueChange)="difficultyFilter.set($event)" placeholder="Any level">
+            <mat-option value="">Any level</mat-option>
+            @for (d of difficulties; track d.value) {
+              <mat-option [value]="d.value">{{ d.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      @if (pool().length) {
+        <mat-checkbox class="all" [checked]="allShownSelected()" (change)="toggleAllShown()">Select all shown</mat-checkbox>
+      }
+      <div class="questions">
+        @for (q of pool(); track q.id) {
+          <label class="q" [class.on]="selectedSet().has(q.id)">
+            <mat-checkbox [checked]="selectedSet().has(q.id)" (change)="toggle(q)" />
+            <mat-icon class="type" [matTooltip]="typeInfo(q.type).label">{{ typeInfo(q.type).icon }}</mat-icon>
+            <span class="text">{{ q.text }}</span>
+            <small>{{ subjectName(q) }} · {{ q.difficulty }} · {{ q.score }} pt</small>
+          </label>
+        } @empty {
+          <p class="none">
+            No questions here yet.
+            <a routerLink="/create-question">Create some</a> or <a routerLink="/upload">upload from Excel</a>.
+          </p>
+        }
+      </div>
+    </section>
+
+    <!-- Selected questions -->
+    <section class="picked">
+      <h2>
+        In this exam <small>({{ selected().length }} · {{ totalPoints() }} pts)</small>
+        @if (selected().length > 1) {
+          <button mat-icon-button matTooltip="Shuffle order" aria-label="Shuffle order" (click)="shuffleSelected()"><mat-icon>shuffle</mat-icon></button>
+        }
+      </h2>
+      @for (q of selected(); track q.id; let i = $index, last = $last) {
+        <div class="p">
+          <span class="n">{{ i + 1 }}</span>
+          <span class="text">{{ q.text }}</span>
+          <button mat-icon-button [disabled]="i === 0" (click)="move(i, -1)" aria-label="Move up"><mat-icon>arrow_upward</mat-icon></button>
+          <button mat-icon-button [disabled]="last" (click)="move(i, 1)" aria-label="Move down"><mat-icon>arrow_downward</mat-icon></button>
+          <button mat-icon-button (click)="removeAt(i)" aria-label="Remove"><mat-icon>close</mat-icon></button>
+        </div>
+      } @empty {
+        <p class="none">Tick questions on the left, or add random ones.</p>
+      }
+    </section>
+  </div>
+}
+
+@if (submitted() && errors().length) {
+  <ul class="errors" role="alert">
+    @for (e of errors(); track e) {
+      <li><mat-icon inline>error</mat-icon> {{ e }}</li>
+    }
+  </ul>
+}
+
+<div class="actions">
+  <a mat-button routerLink="/exams">Cancel</a>
+  <button mat-stroked-button [disabled]="saving()" (click)="save(true)"><mat-icon>play_arrow</mat-icon> Save & start</button>
+  <button mat-flat-button [disabled]="saving()" (click)="save()"><mat-icon>save</mat-icon> Save exam</button>
+</div>

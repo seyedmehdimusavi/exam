@@ -1,0 +1,107 @@
+<header class="head">
+  @if (exam()) {
+    <button mat-icon-button aria-label="All exams" (click)="examId.set('')"><mat-icon>arrow_back</mat-icon></button>
+  }
+  <h1>{{ exam()?.title ?? 'Report' }}</h1>
+  <span class="spacer"></span>
+  @if (exam()) {
+    <button mat-stroked-button [disabled]="!attempts().length" (click)="export()"><mat-icon>download</mat-icon> Export to Excel</button>
+  }
+</header>
+
+<div class="filters">
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="exam-select">
+    <mat-select [value]="examId()" (valueChange)="examId.set($event)" aria-label="Exam">
+      <mat-option value="">All exams (overview)</mat-option>
+      @for (e of state.sortedExams(); track e.id) {
+        <mat-option [value]="e.id">{{ e.title }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <app-member-picker [(email)]="email" />
+</div>
+
+@if (!exam()) {
+  <!-- Overview of every exam -->
+  <section class="card">
+    <table class="table">
+      <thead>
+        <tr><th>Exam</th><th>Category</th><th class="num">Results</th><th class="num">Average</th><th class="num">Best</th><th>Last taken</th></tr>
+      </thead>
+      <tbody>
+        @for (row of overview(); track row.exam.id) {
+          <tr tabindex="0" (click)="open(row.exam)" (keydown.enter)="open(row.exam)">
+            <td>{{ row.exam.title }}</td>
+            <td><i class="swatch" [style.background]="row.category?.color | themed"></i>{{ row.category?.name }}</td>
+            <td class="num">{{ row.count }}</td>
+            <td class="num">{{ row.average === null ? '–' : row.average + '%' }}</td>
+            <td class="num">{{ row.best === null ? '–' : row.best + '%' }}</td>
+            <td>{{ row.last ? (row.last | date: 'd MMM y') : '–' }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="6" class="none">No exams yet. <a routerLink="/exams/new">Create one</a>.</td></tr>
+        }
+      </tbody>
+    </table>
+  </section>
+} @else {
+  <div class="tiles">
+    <app-stat-tile label="Results" icon="groups" [value]="tiles().results" />
+    <app-stat-tile label="Average" icon="percent" [value]="tiles().average" />
+    <app-stat-tile label="Best" icon="emoji_events" [value]="tiles().best" />
+    <app-stat-tile label="Lowest" icon="south" [value]="tiles().lowest" />
+    <app-stat-tile label="Average time" icon="timer" [value]="tiles().time" />
+  </div>
+
+  @if (!attempts().length) {
+    <p class="none">No results for this exam yet. <a [routerLink]="['/exams', exam()!.id, 'take']">Take it now</a>.</p>
+  } @else {
+    <div class="cards">
+      <section class="card wide">
+        <div class="card-head">
+          <h2>Results</h2>
+          <span class="spacer"></span>
+          <span class="sort">Sort by</span>
+          <button mat-button [class.on]="sort() === 'date'" (click)="sort.set('date')">Date</button>
+          <button mat-button [class.on]="sort() === 'score'" (click)="sort.set('score')">Score</button>
+        </div>
+        <table class="table">
+          <thead>
+            <tr><th>Who</th><th>Date</th><th class="num">Points</th><th class="num">Score</th><th>Time</th><th></th></tr>
+          </thead>
+          <tbody>
+            @for (a of attempts(); track a.id) {
+              <tr tabindex="0" [routerLink]="['/attempts', a.id]">
+                <td><span class="person"><app-avatar [name]="state.memberFor(a.takenBy).name" [seed]="a.takenBy" [size]="24" /> {{ state.memberFor(a.takenBy).name }}</span></td>
+                <td>{{ a.submittedAt | date: 'd MMM y, HH:mm' }}</td>
+                <td class="num">{{ a.totalScore }} / {{ a.maxScore }}</td>
+                <td class="num"><b>{{ percent(a) }}%</b></td>
+                <td>{{ minutes(a) }}</td>
+                <td>@if (a.gradingStatus === 'pending') { <span class="pending">waiting for marks</span> }</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+
+      @if (hardest().length) {
+        <section class="card wide hard">
+          <h2><mat-icon>priority_high</mat-icon> Hardest questions</h2>
+          @for (s of hardest(); track s.question.id) {
+            <div class="hard-row">
+              <b>{{ s.pct }}%</b>
+              <span>{{ s.question.text }}</span>
+              <small>{{ s.correct }} of {{ s.answered }} fully correct</small>
+            </div>
+          }
+        </section>
+      }
+
+      <section class="card wide">
+        <h2>Score per question</h2>
+        <p class="sub">Share of points earned on each question across the results shown. Hover for details.</p>
+        <app-bar-list [items]="questionBars()" [max]="100" />
+      </section>
+    </div>
+  }
+}

@@ -1,0 +1,57 @@
+<mat-sidenav-container class="container">
+  <mat-sidenav #drawer [mode]="isMobile() ? 'over' : 'side'" [opened]="!isMobile()" class="drawer">
+    <div class="brand"><app-logo [size]="36" /> <span>Family Exams</span></div>
+
+    <nav class="nav">
+      @for (item of nav; track item.path) {
+        <a
+          class="nav-item"
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          (click)="isMobile() && drawer.close()"
+        >
+          <mat-icon>{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    @if (state.currentUser(); as user) {
+      <div class="me">
+        <app-avatar [name]="user.name" [seed]="user.email" [size]="36" />
+        <div class="who">
+          <b>{{ user.name }}</b>
+          <small>Signed in</small>
+        </div>
+        <button mat-icon-button [attr.aria-label]="'Theme: ' + theme.mode()" [title]="'Theme: ' + theme.mode()" (click)="theme.cycle()">
+          <mat-icon>{{ themeIcon() }}</mat-icon>
+        </button>
+        <button mat-icon-button aria-label="Sign out" title="Sign out" (click)="signOut()">
+          <mat-icon>logout</mat-icon>
+        </button>
+      </div>
+    }
+  </mat-sidenav>
+
+  <mat-sidenav-content class="main">
+    @if (isMobile()) {
+      <header class="topbar">
+        <button mat-icon-button aria-label="Menu" (click)="drawer.toggle()"><mat-icon>menu</mat-icon></button>
+        <app-logo [size]="28" />
+        <span class="title">Family Exams</span>
+        <span class="spacer"></span>
+        <button mat-icon-button [attr.aria-label]="'Theme: ' + theme.mode()" (click)="theme.cycle()">
+          <mat-icon>{{ themeIcon() }}</mat-icon>
+        </button>
+      </header>
+    }
+
+    @if (state.error(); as error) {
+      <div class="banner" role="alert"><mat-icon>error</mat-icon> {{ error }}</div>
+    }
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

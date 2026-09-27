@@ -1,0 +1,116 @@
+rules_version = '2';
+
+// Family Exams security rules.
+// Only the family can read or write, and every write must have the shape the app saves.
+// Deploy: Firebase Console → Firestore Database → Rules → paste → Publish.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- who ----
+    function family() {
+      return [
+        'parent@example.com',
+        'child@example.com'
+      ];
+    }
+    function me() {
+      return request.auth.token.email.lower();
+    }
+    function isFamily() {
+      return request.auth != null && request.auth.token.email != null && me() in family();
+    }
+
+    // ---- helpers ----
+    function exactKeys(d, keys) {
+      return d.keys().hasAll(keys) && d.keys().hasOnly(keys);
+    }
+    function text(v, min, max) {
+      return v is string && v.size() >= min && v.size() <= max;
+    }
+    function time(v) {
+      return v is int || v is float;
+    }
+
+    // ---- categories ----
+    function validCategory(d) {
+      return exactKeys(d, ['name', 'icon', 'color', 'order', 'subjects'])
+        && text(d.name, 1, 60)
+        && text(d.icon, 1, 40)
+        && d.color is string && d.color.matches('^#[0-9a-fA-F]{6}$')
+        && d.order is number
+        && d.subjects is list && d.subjects.size() <= 300;
+    }
+    match /categories/{id} {
+      allow read, delete: if isFamily();
+      allow create, update: if isFamily() && validCategory(request.resource.data);
+    }
+
+    // ---- questions ----
+    function validQuestion(d) {
+      return exactKeys(d, ['categoryId', 'subjectId', 'type', 'text', 'options', 'correctAnswers',
+                           'score', 'difficulty', 'tags', 'createdBy', 'createdAt'])
+        && text(d.categoryId, 1, 100)
+        && text(d.subjectId, 1, 100)
+        && d.type in ['multiple-choice', 'true-false', 'short-answer', 'essay']
+        && text(d.text, 1, 5000)
+        && d.options is list && d.options.size() <= 6
+        && d.correctAnswers is list && d.correctAnswers.size() <= 20
+        && d.score is number && d.score > 0 && d.score <= 1000
+        && d.difficulty in ['easy', 'medium', 'hard']
+        && d.tags is list && d.tags.size() <= 30
+        && d.createdBy is string
+        && time(d.createdAt);
+    }
+    match /questions/{id} {
+      allow read, delete: if isFamily();
+      allow create: if isFamily() && validQuestion(request.resource.data)
+        && request.resource.data.createdBy.lower() == me();
+      allow update: if isFamily() && validQuestion(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    // ---- exams ----
+    function validExam(d) {
+      return exactKeys(d, ['title', 'categoryId', 'subjectId', 'questionIds', 'durationMin', 'createdBy', 'createdAt'])
+        && text(d.title, 1, 150)
+        && text(d.categoryId, 1, 100)
+        && text(d.subjectId, 0, 100)
+        && d.questionIds is list && d.questionIds.size() >= 1 && d.questionIds.size() <= 500
+        && (d.durationMin == null || (d.durationMin is number && d.durationMin > 0 && d.durationMin <= 600))
+        && d.createdBy is string
+        && time(d.createdAt);
+    }
+    match /exams/{id} {
+      allow read, delete: if isFamily();
+      allow create: if isFamily() && validExam(request.resource.data)
+        && request.resource.data.createdBy.lower() == me();
+      allow update: if isFamily() && validExam(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    // ---- results ----
+    function validAttempt(d) {
+      return exactKeys(d, ['examId', 'takenBy', 'answers', 'totalScore', 'maxScore',
+                           'gradingStatus', 'source', 'startedAt', 'submittedAt'])
+        && text(d.examId, 1, 100)
+        && d.takenBy.lower() in family()
+        && d.answers is list && d.answers.size() <= 500
+        && d.maxScore is number && d.maxScore >= 0
+        && d.totalScore is number && d.totalScore >= 0 && d.totalScore <= d.maxScore
+        && d.gradingStatus in ['pending', 'graded']
+        && d.source in ['online', 'manual']
+        && time(d.startedAt) && time(d.submittedAt);
+    }
+    match /attempts/{id} {
+      allow read, delete: if isFamily();
+      // Online results belong to whoever took the exam; paper results can be entered for anyone.
+      allow create: if isFamily() && validAttempt(request.resource.data)
+        && (request.resource.data.source == 'manual' || request.resource.data.takenBy.lower() == me());
+      // Marking changes answers, total and status only.
+      allow update: if isFamily() && validAttempt(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answers', 'totalScore', 'gradingStatus']);
+    }
+  }
+}

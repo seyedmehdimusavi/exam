@@ -1,0 +1,142 @@
+<header class="head">
+  <h1>Upload questions</h1>
+  <button mat-stroked-button (click)="template()"><mat-icon>download</mat-icon> Download Excel template</button>
+</header>
+
+@if (imported() !== null) {
+  <div class="success">
+    <mat-icon>celebration</mat-icon>
+    <div>
+      <b>{{ imported() }} questions imported.</b>
+      @if (rows().length) {
+        <span>{{ rows().length }} rows with problems are still below. Fix them or remove them.</span>
+      }
+    </div>
+    @if (!rows().length) {
+      <button mat-flat-button (click)="reset()">Upload another file</button>
+    }
+  </div>
+}
+
+@if (!rows().length) {
+  <mat-card appearance="outlined" class="defaults">
+    <mat-card-content>
+      <p class="label">Optional: use these when a row has no category or subject</p>
+      <div class="fields">
+        <mat-form-field appearance="outline">
+          <mat-label>Default category</mat-label>
+          <mat-select [(ngModel)]="defaults.categoryId">
+            <mat-option value="">None</mat-option>
+            @for (c of state.sortedCategories(); track c.id) {
+              <mat-option [value]="c.id">{{ c.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Default subject</mat-label>
+          <input matInput [(ngModel)]="defaults.subjectName" />
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <label
+    class="drop"
+    [class.dragging]="dragging()"
+    (dragover)="$event.preventDefault(); dragging.set(true)"
+    (dragleave)="dragging.set(false)"
+    (drop)="onDrop($event)"
+  >
+    <input #file type="file" accept=".xlsx,.xls" hidden (change)="onPick(file)" />
+    @if (busy()) {
+      <mat-spinner diameter="48" />
+      <span>Reading file…</span>
+    } @else {
+      <mat-icon class="big">upload_file</mat-icon>
+      <b>Drop your Excel file here</b>
+      <span>or click to choose one</span>
+    }
+  </label>
+
+  @if (readError(); as error) {
+    <p class="error" role="alert"><mat-icon inline>error</mat-icon> {{ error }}</p>
+  }
+} @else {
+  <div class="summary">
+    <span class="file"><mat-icon>description</mat-icon> {{ fileName() }}</span>
+    <span class="chip ok"><mat-icon inline>check_circle</mat-icon> {{ ready().length }} ready</span>
+    @if (problems()) {
+      <span class="chip bad"><mat-icon inline>error</mat-icon> {{ problems() }} need fixing</span>
+      <mat-button-toggle-group [value]="onlyProblems()" (change)="onlyProblems.set($event.value)" hideSingleSelectionIndicator>
+        <mat-button-toggle [value]="false">All rows</mat-button-toggle>
+        <mat-button-toggle [value]="true">Only problems</mat-button-toggle>
+      </mat-button-toggle-group>
+    }
+    <span class="spacer"></span>
+    <button mat-button (click)="reset()">Cancel</button>
+    <button mat-flat-button [disabled]="!ready().length || busy()" (click)="importReady()">
+      <mat-icon>cloud_upload</mat-icon>
+      Import {{ ready().length }} questions
+    </button>
+  </div>
+  @if (problems() && ready().length) {
+    <p class="note">Rows with problems are skipped and stay here so you can fix them afterwards.</p>
+  }
+
+  <div class="table-wrap">
+    <table class="preview">
+      <thead>
+        <tr>
+          <th>Row</th>
+          <th></th>
+          <th>Category / Subject</th>
+          <th>Type</th>
+          <th>Question</th>
+          <th>Answer</th>
+          <th>Pts</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of visibleRows(); track row.rowNumber) {
+          @let cat = state.categoryById().get(row.draft.categoryId);
+          <tr [class.bad]="row.errors.length">
+            <td class="num">{{ row.rowNumber }}</td>
+            <td>
+              @if (row.errors.length) {
+                <mat-icon class="status bad">error</mat-icon>
+              } @else if (row.warnings.length) {
+                <mat-icon class="status warn" [matTooltip]="row.warnings.join('\n')">info</mat-icon>
+              } @else {
+                <mat-icon class="status ok">check_circle</mat-icon>
+              }
+            </td>
+            <td>
+              <b [style.color]="cat?.color">{{ cat?.name ?? (row.categoryText || '—') }}</b><br />
+              <small>{{ row.draft.subjectName || '—' }}</small>
+            </td>
+            <td><mat-icon class="type" [matTooltip]="typeInfo(row.draft.type).label">{{ typeInfo(row.draft.type).icon }}</mat-icon></td>
+            <td class="question">
+              {{ row.draft.text || '—' }}
+              @if (row.draft.type === 'multiple-choice' && row.draft.options.length) {
+                <small class="options">{{ row.draft.options.join(' · ') }}</small>
+              }
+              @for (e of row.errors; track e) {
+                <small class="msg bad">{{ e }}</small>
+              }
+              @for (w of row.warnings; track w) {
+                <small class="msg warn">{{ w }}</small>
+              }
+            </td>
+            <td class="answer">{{ answerText(row) || '—' }}</td>
+            <td class="num">{{ row.draft.score }}</td>
+            <td class="actions">
+              <button mat-icon-button aria-label="Edit row" matTooltip="Fix / edit" (click)="edit(row)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button aria-label="Remove row" matTooltip="Remove from upload" (click)="removeRow(row)"><mat-icon>close</mat-icon></button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

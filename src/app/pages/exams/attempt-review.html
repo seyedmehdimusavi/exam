@@ -1,0 +1,128 @@
+@if (!state.loaded()) {
+  <mat-spinner class="center" diameter="48" />
+} @else if (!attempt()) {
+  <p>This result doesn't exist anymore. <a routerLink="/exams">Back to exams</a></p>
+} @else {
+  @let a = attempt()!;
+  <header class="head">
+    <a mat-icon-button routerLink="/exams" aria-label="Back to exams"><mat-icon>arrow_back</mat-icon></a>
+    <div>
+      <h1>{{ exam()?.title ?? '(deleted exam)' }}</h1>
+      <span class="meta">
+        {{ member().name }} · {{ a.submittedAt | date: 'EEEE d MMM y, HH:mm' }}
+        @if (a.source === 'manual') { · paper exam }
+      </span>
+    </div>
+  </header>
+
+  <mat-card appearance="outlined" class="score-card" [class.celebrate]="done()">
+    <div class="ring" [style.--pct]="pct()">
+      <span>{{ pct() }}%</span>
+    </div>
+    <div class="summary">
+      <h2><mat-icon class="mood">{{ mood().icon }}</mat-icon> {{ mood().text }}</h2>
+      <p class="points">{{ a.totalScore }} of {{ a.maxScore }} points</p>
+      @if (items().length) {
+        <div class="tally">
+          <span class="ok"><mat-icon inline>check_circle</mat-icon> {{ stats().correct }} right</span>
+          <span class="bad"><mat-icon inline>cancel</mat-icon> {{ stats().wrong }} wrong</span>
+          @if (stats().pending) {
+            <span class="wait"><mat-icon inline>hourglass_top</mat-icon> {{ stats().pending }} to mark</span>
+          }
+        </div>
+      }
+    </div>
+    <div class="buttons">
+      @if (exam()) {
+        <a mat-flat-button [routerLink]="['/exams', a.examId, 'take']"><mat-icon>replay</mat-icon> Try again</a>
+      }
+      <button mat-button (click)="remove()"><mat-icon>delete</mat-icon> Delete result</button>
+    </div>
+  </mat-card>
+
+  @if (stats().pending) {
+    <div class="banner">
+      <mat-icon>rate_review</mat-icon>
+      The score will go up once the essay answers below are marked.
+    </div>
+  }
+
+  @for (item of items(); track item.question.id; let i = $index) {
+    @let q = item.question;
+    @let ans = item.answer;
+    <mat-card
+      appearance="outlined"
+      class="item"
+      [class.right]="ans.isCorrect === true"
+      [class.wrong]="ans.isCorrect === false"
+      [class.pending]="ans.isCorrect === null"
+    >
+      <div class="item-head">
+        <span class="n">{{ i + 1 }}</span>
+        <mat-icon class="state">
+          {{ ans.isCorrect === true ? 'check_circle' : ans.isCorrect === false ? 'cancel' : 'hourglass_top' }}
+        </mat-icon>
+        <span class="spacer"></span>
+        <span class="pts">{{ ans.isCorrect === null ? '?' : ans.score }} / {{ q.score }}</span>
+      </div>
+      <p class="q-text">{{ q.text }}</p>
+
+      @switch (q.type) {
+        @case ('multiple-choice') {
+          @for (option of q.options; track option; let j = $index) {
+            <div class="opt" [class.chosen]="isChosen(item, option)" [class.correct]="isRight(item, option)">
+              <span class="letter">{{ letters[j] }}</span>
+              <span class="grow">{{ option }}</span>
+              @if (isRight(item, option)) { <mat-icon>check</mat-icon> }
+              @else if (isChosen(item, option)) { <mat-icon>close</mat-icon> }
+            </div>
+          }
+        }
+        @case ('true-false') {
+          <p>Your answer: <b>{{ ans.answer[0] ?? '(no answer)' }}</b></p>
+          @if (!ans.isCorrect) {
+            <p class="correct-line">Correct answer: <b>{{ q.correctAnswers[0] }}</b></p>
+          }
+        }
+        @case ('short-answer') {
+          <p>Your answer: <b>{{ ans.answer[0] ?? '(no answer)' }}</b></p>
+          @if (!ans.isCorrect) {
+            <p class="correct-line">Correct answer: <b>{{ q.correctAnswers.join(' or ') }}</b></p>
+            @if (ans.answer[0]) {
+              <button mat-stroked-button (click)="accept(item)"><mat-icon>thumb_up</mat-icon> Accept this answer</button>
+            }
+          }
+        }
+        @case ('essay') {
+          <div class="essay">{{ ans.answer[0] ?? '(no answer)' }}</div>
+          @if (q.correctAnswers[0]) {
+            <p class="model"><b>Model answer:</b> {{ q.correctAnswers[0] }}</p>
+          }
+          @let g = gradeFor(item);
+          <div class="grade">
+            <mat-form-field appearance="outline" class="points-field">
+              <mat-label>Points (0–{{ q.score }})</mat-label>
+              <input matInput type="number" min="0" [max]="q.score" [ngModel]="g.score" (ngModelChange)="setGrade(item, { score: $event })" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="feedback-field">
+              <mat-label>Feedback (optional)</mat-label>
+              <input matInput [ngModel]="g.feedback" (ngModelChange)="setGrade(item, { feedback: $event })" />
+            </mat-form-field>
+          </div>
+        }
+      }
+
+      @if (ans.feedback && q.type !== 'essay') {
+        <p class="feedback"><mat-icon inline>chat</mat-icon> {{ ans.feedback }}</p>
+      }
+    </mat-card>
+  }
+
+  @if (hasUnsaved()) {
+    <div class="save-bar">
+      <span>You have unsaved marks.</span>
+      <button mat-button (click)="grades.set({})">Discard</button>
+      <button mat-flat-button [disabled]="saving()" (click)="saveGrades()"><mat-icon>save</mat-icon> Save marks</button>
+    </div>
+  }
+}

@@ -1,0 +1,80 @@
+<main class="login">
+  <aside class="brand">
+    <div class="mesh" aria-hidden="true"></div>
+    <div class="brand-top">
+      <app-logo [size]="44" />
+      <span>Family Exams</span>
+    </div>
+    <div class="pitch">
+      <h1>Practise.<br />Test.<br />Grow.</h1>
+      <p>Make questions, run exams and watch progress, together.</p>
+    </div>
+    <ul class="features">
+      <li><mat-icon>edit_note</mat-icon> Create questions in seconds</li>
+      <li><mat-icon>timer</mat-icon> Timed exams with instant marks</li>
+      <li><mat-icon>insights</mat-icon> Daily activity and progress</li>
+    </ul>
+  </aside>
+
+  <section class="side">
+    <button mat-icon-button class="theme" [attr.aria-label]="'Theme: ' + theme.mode()" (click)="theme.cycle()">
+      <mat-icon>{{ themeIcon() }}</mat-icon>
+    </button>
+
+    <div class="box">
+      <div class="mobile-brand"><app-logo [size]="36" /> Family Exams</div>
+
+      @if (!configured || members.length === 0) {
+        <h2>Almost ready</h2>
+        <ol class="setup">
+          @if (!configured) {
+            <li>Copy <code>src/environments/environment.ts</code> to <code>environment.local.ts</code> and paste your Firebase web config.</li>
+          }
+          @if (members.length === 0) {
+            <li>Add each family member to the <code>family</code> list in that file.</li>
+          }
+          <li>In Firebase Console → Authentication, enable <b>Email/Password</b> and add each member with a 6-digit PIN as the password.</li>
+        </ol>
+      } @else if (!selected()) {
+        <h2>Welcome back</h2>
+        <p class="hint">Choose your profile</p>
+        <div class="members">
+          @for (m of members; track m.email) {
+            <button class="member" (click)="choose(m)">
+              <app-avatar [name]="m.name" [seed]="m.email" [size]="44" />
+              <span class="name">{{ m.name }}</span>
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="pin">
+          <button mat-button class="back" (click)="back()"><mat-icon>arrow_back</mat-icon> Switch profile</button>
+          <app-avatar [name]="selected()!.name" [seed]="selected()!.email" [size]="64" />
+          <h2>Hi, {{ selected()!.name }}</h2>
+          <p class="hint">Enter your {{ pinLength }}-digit PIN</p>
+
+          <div class="dots" [class.shake]="error()">
+            @for (filled of dots(); track $index) {
+              <span class="dot" [class.filled]="filled"></span>
+            }
+          </div>
+          <p class="error" role="alert">{{ error() }}</p>
+
+          @if (busy()) {
+            <mat-spinner diameter="40" />
+          } @else {
+            <div class="pad">
+              @for (k of keys; track k) {
+                <button class="key" (click)="press(k)">{{ k }}</button>
+              }
+              <span></span>
+              <button class="key" (click)="press('0')">0</button>
+              <button class="key ghost" aria-label="Delete" (click)="erase()"><mat-icon>backspace</mat-icon></button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </section>
+</main>
