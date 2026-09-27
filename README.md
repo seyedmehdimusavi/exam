@@ -1,4 +1,4 @@
-# Family Exams
+# Exam
 
 A family app to create questions, run exams and follow learning progress.
 Angular 22 + Angular Material, with Firebase Authentication and Cloud Firestore.

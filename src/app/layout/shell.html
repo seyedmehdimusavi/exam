@@ -1,6 +1,6 @@
 <mat-sidenav-container class="container">
   <mat-sidenav #drawer [mode]="isMobile() ? 'over' : 'side'" [opened]="!isMobile()" class="drawer">
-    <div class="brand"><app-logo [size]="36" /> <span>Family Exams</span></div>
+    <div class="brand"><app-logo [size]="36" /> <span>Exam</span></div>
 
     <nav class="nav">
       @for (item of nav; track item.path) {
@@ -38,7 +38,7 @@
       <header class="topbar">
         <button mat-icon-button aria-label="Menu" (click)="drawer.toggle()"><mat-icon>menu</mat-icon></button>
         <app-logo [size]="28" />
-        <span class="title">Family Exams</span>
+        <span class="title">Exam</span>
         <span class="spacer"></span>
         <button mat-icon-button [attr.aria-label]="'Theme: ' + theme.mode()" (click)="theme.cycle()">
           <mat-icon>{{ themeIcon() }}</mat-icon>

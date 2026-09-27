@@ -19,6 +19,7 @@ export const NAV_ITEMS = [
   { path: 'progress', label: 'Progress', icon: 'trending_up' },
   { path: 'report', label: 'Report', icon: 'assessment' },
   { path: 'categories', label: 'Categories', icon: 'category' },
+  { path: 'guide', label: 'Guide', icon: 'menu_book' },
 ];
 
 @Component({

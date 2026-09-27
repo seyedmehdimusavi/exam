@@ -1,6 +1,6 @@
 {
-  "name": "Family Exams",
-  "short_name": "Exams",
+  "name": "Exam",
+  "short_name": "Exam",
   "description": "Make questions, run exams and track progress together.",
   "display": "standalone",
   "scope": "./",

@@ -1,0 +1,263 @@
+<header class="page-head">
+  <div>
+    <h1>Guide</h1>
+    <p class="lead">Everything you can do in Exam, page by page.</p>
+  </div>
+</header>
+
+<!-- Quick start -->
+<section class="quick">
+  @for (s of quickStart; track s.title; let i = $index) {
+    <a class="step" [routerLink]="s.link">
+      <span class="num">{{ i + 1 }}</span>
+      <mat-icon>{{ s.icon }}</mat-icon>
+      <b>{{ s.title }}</b>
+      <small>{{ s.text }}</small>
+    </a>
+  }
+</section>
+
+<nav class="toc" aria-label="Guide sections">
+  @for (t of sections; track t.id) {
+    <button class="chip" (click)="jump(t.id)"><mat-icon>{{ t.icon }}</mat-icon> {{ t.title }}</button>
+  }
+</nav>
+
+<!-- Signing in -->
+<section class="panel" id="sign-in">
+  <div class="sec-head">
+    <span class="badge"><mat-icon>login</mat-icon></span>
+    <h2>Signing in</h2>
+  </div>
+  <ol>
+    <li>Tap your name on the welcome screen.</li>
+    <li>Type your <b>6-digit PIN</b> on the keypad (or keyboard). It signs in as soon as the last digit is entered.</li>
+    <li>You stay signed in on that device. Use <mat-icon inline>logout</mat-icon> at the bottom of the menu to sign out, e.g. to let someone else use it.</li>
+  </ol>
+  <p class="tip"><mat-icon>contrast</mat-icon><span>The <b>theme button</b> (next to sign out) switches between <b>Auto</b>, <b>Light</b> and <b>Dark</b>. Each device remembers its choice.</span></p>
+  <p class="tip"><mat-icon>install_mobile</mat-icon><span>On a phone, open the site and choose <b>Add to Home Screen</b> (Safari: Share menu). It then opens like an app.</span></p>
+</section>
+
+<!-- Categories -->
+<section class="panel" id="categories">
+  <div class="sec-head">
+    <span class="badge"><mat-icon>category</mat-icon></span>
+    <h2>Categories and subjects</h2>
+    <span class="spacer"></span>
+    <a mat-stroked-button routerLink="/categories">Open</a>
+  </div>
+  <p>Every question and exam belongs to a <b>category</b> (English, Geography, Visual Art, Science, Mathematics…) and a <b>subject</b> inside it (e.g. Mathematics → Fractions).</p>
+  <ol>
+    <li><b>New category:</b> click <i>New category</i>, type a name, pick an icon and colour, then <i>Save</i>.</li>
+    <li><b>Add a subject:</b> type it in the box at the bottom of a category card and press Enter.</li>
+    <li><b>Rename a subject:</b> click its chip. <b>Delete:</b> the small <mat-icon inline>cancel</mat-icon> on the chip.</li>
+    <li><b>Edit or delete a category:</b> the <mat-icon inline>more_vert</mat-icon> menu on its card.</li>
+  </ol>
+  <p class="tip"><mat-icon>info</mat-icon><span>You don't have to create subjects first: typing a new subject while adding a question creates it automatically. A category or subject that still has questions can't be deleted.</span></p>
+</section>
+
+<!-- Create question -->
+<section class="panel" id="create">
+  <div class="sec-head">
+    <span class="badge"><mat-icon>edit_note</mat-icon></span>
+    <h2>Adding a question and its answer</h2>
+    <span class="spacer"></span>
+    <a mat-stroked-button routerLink="/create-question">Open</a>
+  </div>
+  <ol>
+    <li><b>Category:</b> tap one of the coloured buttons.</li>
+    <li><b>Subject:</b> pick from the list or type a new one.</li>
+    <li><b>Type:</b> choose the question type (see the table below).</li>
+    <li><b>Question:</b> write the question, then fill in the answer part for that type.</li>
+    <li>Optionally set <b>difficulty</b>, <b>points</b> (default 1) and <b>tags</b> (comma separated).</li>
+    <li>Click <b>Save &amp; add another</b>. The form clears but keeps the category, subject and type, so the next question is quick.</li>
+  </ol>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Type</th><th>How to give the answer</th><th>Marking</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><mat-icon inline>checklist</mat-icon> Multiple choice</td>
+          <td>Type 2–6 options, then tap the <mat-icon inline>radio_button_unchecked</mat-icon> circle next to each correct one. More than one can be correct.</td>
+          <td>Automatic. All correct options must be chosen.</td>
+        </tr>
+        <tr>
+          <td><mat-icon inline>rule</mat-icon> True / False</td>
+          <td>Tap <b>True</b> or <b>False</b>.</td>
+          <td>Automatic.</td>
+        </tr>
+        <tr>
+          <td><mat-icon inline>short_text</mat-icon> Short answer</td>
+          <td>Type the answer. Use <i>Add another accepted answer</i> for other correct spellings (colour / color).</td>
+          <td>Automatic. Capitals, extra spaces and a final full stop are ignored.</td>
+        </tr>
+        <tr>
+          <td><mat-icon inline>notes</mat-icon> Essay</td>
+          <td>Optional model answer to help whoever marks it.</td>
+          <td>By hand, after the exam.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="tip"><mat-icon>edit</mat-icon><span><b>Recent questions</b> below the form lists what was added (switch <i>Mine / Everyone</i>). Use <mat-icon inline>edit</mat-icon> to change one or <mat-icon inline>delete</mat-icon> to remove it. A question used in an exam can't be deleted.</span></p>
+</section>
+
+<!-- Upload -->
+<section class="panel" id="upload">
+  <div class="sec-head">
+    <span class="badge"><mat-icon>upload_file</mat-icon></span>
+    <h2>Bulk upload from Excel</h2>
+    <span class="spacer"></span>
+    <a mat-stroked-button routerLink="/upload">Open</a>
+  </div>
+  <ol>
+    <li>On the Upload page click <b>Download Excel template</b>. It has a <i>Questions</i> sheet with examples and a <i>Help</i> sheet listing your categories.</li>
+    <li>Delete the example rows and add one question per row.</li>
+    <li>Save the file, then drag it onto the page (or click to choose it).</li>
+    <li>Check the preview: <span class="ok"><mat-icon inline>check_circle</mat-icon> ready</span>, <span class="warn"><mat-icon inline>info</mat-icon> note</span>, <span class="bad"><mat-icon inline>error</mat-icon> needs fixing</span> with the reason underneath.</li>
+    <li>Fix a row with <mat-icon inline>edit</mat-icon> (opens the question form) or drop it with <mat-icon inline>close</mat-icon>.</li>
+    <li>Click <b>Import N questions</b>. Rows with problems stay on screen so you can fix them afterwards.</li>
+  </ol>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>What to write</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td>Category</td><td>An existing category name</td><td>Mathematics</td></tr>
+        <tr><td>Subject</td><td>Any name; new ones are created</td><td>Fractions</td></tr>
+        <tr><td>Type</td><td>Multiple choice, True/False, Short answer, Essay, or empty to let the app guess</td><td>Multiple choice</td></tr>
+        <tr><td>Question</td><td>The question text (required)</td><td>What is ½ + ¼?</td></tr>
+        <tr><td>Option A–F</td><td>Only for multiple choice</td><td>¾ · ⅔ · 1 · ½</td></tr>
+        <tr><td>Correct Answer</td><td>
+          Multiple choice: the letter(s), e.g. <code>A</code> or <code>A,C</code><br />
+          True/False: <code>True</code> or <code>False</code> (yes/no also work)<br />
+          Short answer: the answer; separate other accepted answers with <code>;</code><br />
+          Essay: optional model answer
+        </td><td>A</td></tr>
+        <tr><td>Score</td><td>Points; empty = 1</td><td>2</td></tr>
+        <tr><td>Difficulty</td><td>Easy, Medium or Hard; empty = Medium</td><td>Easy</td></tr>
+        <tr><td>Tags</td><td>Optional, comma separated</td><td>revision, week 3</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="tip"><mat-icon>auto_fix_high</mat-icon><span>The upload is forgiving: other column names (Topic, Answer, Points, Level…) and a title row above the headers are fine. You can also set a <b>default category and subject</b> on the Upload page for rows that leave them empty.</span></p>
+</section>
+
+<!-- Exams -->
+<section class="panel" id="exams">
+  <div class="sec-head">
+    <span class="badge"><mat-icon>quiz</mat-icon></span>
+    <h2>Building an exam</h2>
+    <span class="spacer"></span>
+    <a mat-stroked-button routerLink="/exams/new">New exam</a>
+  </div>
+  <ol>
+    <li>On <b>Exams</b>, click <b>New exam</b> and give it a title.</li>
+    <li>Pick a <b>category</b>, and optionally one <b>subject</b> (or <i>All subjects</i>).</li>
+    <li>Tick <b>Time limit</b> and set minutes if you want a countdown.</li>
+    <li>Choose questions from the <b>Question bank</b>: tick them one by one, use <i>Select all shown</i> after searching/filtering, or click <mat-icon inline>casino</mat-icon> <b>Add N random questions</b> (optionally only easy/medium/hard).</li>
+    <li>Reorder with the arrows or <mat-icon inline>shuffle</mat-icon> shuffle them in <b>In this exam</b>.</li>
+    <li>Click <b>Save exam</b>, or <b>Save &amp; start</b> to take it straight away.</li>
+  </ol>
+  <p class="tip"><mat-icon>edit</mat-icon><span>Edit or delete an exam from the <mat-icon inline>more_vert</mat-icon> menu on its card. Deleting an exam also deletes its results.</span></p>
+</section>
+
+<section class="panel" id="take">
+  <div class="sec-head">
+    <span class="badge"><mat-icon>play_arrow</mat-icon></span>
+    <h2>Taking an exam</h2>
+    <span class="spacer"></span>
+    <a mat-stroked-button routerLink="/exams">Open</a>
+  </div>
+  <ol>
+    <li>Click <b>Start</b> on an exam card, then <b>Start exam</b>.</li>
+    <li>Answer one question at a time. Use <b>Next</b> / <b>Previous</b>, or the numbered dots to jump (filled dots are answered).</li>
+    <li>On the last question click <b>Finish</b>. You'll be warned about unanswered questions.</li>
+    <li>The results page shows the score, what was right or wrong, and the correct answers.</li>
+  </ol>
+  <p class="tip"><mat-icon>save</mat-icon><span>Answers are saved on the device as you go. If the page closes, reopen the exam and choose <b>Continue</b>. With a time limit, answers are submitted automatically when time runs out.</span></p>
+</section>
+
+<section class="panel" id="marking">
+  <div class="sec-head">
+    <span class="badge"><mat-icon>rate_review</mat-icon></span>
+    <h2>Marking essays and paper exams</h2>
+  </div>
+  <h3>Essays</h3>
+  <ol>
+    <li>On <b>Exams</b>, open the <b>To grade</b> tab (the red number shows how many are waiting).</li>
+    <li>Open a result, type the <b>points</b> and optional <b>feedback</b> for each essay.</li>
+    <li>Click <b>Save marks</b> in the bar at the bottom. The score updates straight away.</li>
+  </ol>
+  <p class="tip"><mat-icon>thumb_up</mat-icon><span>If a short answer was right but spelled a way you didn't list, click <b>Accept this answer</b> on the results page to give full marks.</span></p>
+  <h3>Exams done on paper</h3>
+  <ol>
+    <li>On <b>Exams</b>, click <b>Import paper results</b> and choose the exam.</li>
+    <li><b>Download sheet</b>, then fill in one row per person: <i>Member</i> (name), <i>Date</i> and either <i>Total score</i> or points for each question (Q1, Q2…).</li>
+    <li><b>Choose file</b>, check the preview and click <b>Import</b>.</li>
+  </ol>
+</section>
+
+<!-- Dashboards -->
+<section class="panel" id="today">
+  <div class="sec-head">
+    <span class="badge"><mat-icon>today</mat-icon></span>
+    <h2>Today</h2>
+    <span class="spacer"></span>
+    <a mat-stroked-button routerLink="/today">Open</a>
+  </div>
+  <p>A picture of one day: questions created, exams taken, right answers, time on exams and points earned, plus right/wrong by category, a 7-day chart and a list of everything done.</p>
+  <ul>
+    <li>Choose whose day to see with the name chips (<b>Everyone</b> or one person). The choice is remembered on the device.</li>
+    <li>Use <mat-icon inline>chevron_left</mat-icon> <mat-icon inline>chevron_right</mat-icon> to look at earlier days.</li>
+    <li>Hover (or tap) bars and columns to see exact numbers.</li>
+  </ul>
+</section>
+
+<section class="panel" id="progress">
+  <div class="sec-head">
+    <span class="badge"><mat-icon>trending_up</mat-icon></span>
+    <h2>Progress</h2>
+    <span class="spacer"></span>
+    <a mat-stroked-button routerLink="/progress">Open</a>
+  </div>
+  <ul>
+    <li>Filter by person, period (7 / 30 / 90 days or all time) and category.</li>
+    <li><b>Trend</b> compares the last 5 results with the 5 before (needs 6 or more results).</li>
+    <li><b>Score over time</b>: hover a point (or focus the chart and use the arrow keys) to see each exam.</li>
+    <li><b>Practise next</b> lists the weakest subjects under 80% (each needs at least 3 marked answers). Build an exam from those subjects next.</li>
+    <li>Results still waiting for essay marks are left out of averages until they're marked.</li>
+  </ul>
+</section>
+
+<section class="panel" id="report">
+  <div class="sec-head">
+    <span class="badge"><mat-icon>assessment</mat-icon></span>
+    <h2>Report</h2>
+    <span class="spacer"></span>
+    <a mat-stroked-button routerLink="/report">Open</a>
+  </div>
+  <ul>
+    <li>The overview lists every exam with results, average, best and last taken. Click a row to open it.</li>
+    <li>For one exam: average, best, lowest and average time, all results (sort by date or score), the <b>hardest questions</b> and the score for each question.</li>
+    <li><b>Export to Excel</b> saves a file with a summary, the results and the question analysis.</li>
+  </ul>
+</section>
+
+<section class="panel" id="faq">
+  <div class="sec-head">
+    <span class="badge"><mat-icon>help</mat-icon></span>
+    <h2>Questions and answers</h2>
+  </div>
+  <dl>
+    <dt>Forgot a PIN?</dt>
+    <dd>A PIN is the Firebase password. Reset it in Firebase Console → Authentication → Users → the person → <i>Reset password</i> (or set a new 6-digit one).</dd>
+    <dt>Does it work offline?</dt>
+    <dd>The app opens offline after the first visit and shows what was already loaded. Changes made offline are saved and sent when the connection returns.</dd>
+    <dt>Can two people use it at the same time?</dt>
+    <dd>Yes. Everything updates live on every device.</dd>
+    <dt>Why can't I delete a question or category?</dt>
+    <dd>It's still used. Remove the question from its exams (or move/delete the questions in the category) first.</dd>
+  </dl>
+</section>

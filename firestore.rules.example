@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Family Exams security rules.
+// Exam security rules.
 // Only the family can read or write, and every write must have the shape the app saves.
 // Deploy: Firebase Console → Firestore Database → Rules → paste → Publish.
 service cloud.firestore {

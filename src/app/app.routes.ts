@@ -27,6 +27,7 @@ export const routes: Routes = [
       { path: 'attempts/:id', loadComponent: () => import('./pages/exams/attempt-review').then((m) => m.AttemptReview) },
       { path: 'progress', loadComponent: () => import('./pages/progress/progress').then((m) => m.Progress) },
       { path: 'report', loadComponent: () => import('./pages/report/report').then((m) => m.Report) },
+      { path: 'guide', loadComponent: () => import('./pages/guide/guide').then((m) => m.Guide) },
       {
         path: 'categories',
         loadComponent: () => import('./pages/categories/categories').then((m) => m.Categories),
